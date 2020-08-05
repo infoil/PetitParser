@@ -1,0 +1,431 @@
+﻿| package |
+package := Package name: 'PetitParser-Tools'.
+package paxVersion: 1;
+	basicComment: ''.
+
+
+package classNames
+	add: #PPArithmeticParser;
+	add: #PPCharSetPredicate;
+	add: #PPCommaSeparatedParser;
+	add: #PPCompositeParser;
+	add: #PPExpressionParser;
+	add: #PPLambdaParser;
+	add: #PPUnresolvedParser;
+	yourself.
+
+package methodNames
+	add: #Boolean -> #==>;
+	add: #PPAnalyzerTest -> #grammarB;
+	add: #PPAnalyzerTest -> #grammarC;
+	add: #PPAnalyzerTest -> #grammarD;
+	add: #PPAnalyzerTest -> #testFirstSetExpression;
+	add: #PPAnalyzerTest -> #testFirstSetLambda;
+	add: #PPArithmeticParserTest -> #parserClass;
+	add: #PPCommaSeparatedParserTest -> #parserClass;
+	add: #PPExpressionParserTest -> #parserInstance;
+	add: #PPLambdaParserTest -> #parserClass;
+	add: #PPParserTest -> #testChildren;
+	add: #PPParserTest -> #testUnresolved;
+	add: #PPPredicateObjectParser -> #chars:message:;
+	add: #PPPredicateObjectParser -> #digit;
+	add: #PPPredicateObjectParser -> #hex;
+	add: #PPPredicateObjectParser -> #letter;
+	add: #PPPredicateObjectParser -> #lowercase;
+	add: #PPPredicateObjectParser -> #space;
+	add: #PPPredicateObjectParser -> #uppercase;
+	add: #PPPredicateObjectParser -> #word;
+	add: #PPScriptingTest -> #expressionInterpreter;
+	add: #PPScriptingTest -> #expressionParser;
+	add: #PPScriptingTest -> #straightLineParser;
+	add: 'PPPredicateObjectParser class' -> #chars:message:;
+	add: 'PPPredicateObjectParser class' -> #digit;
+	add: 'PPPredicateObjectParser class' -> #hex;
+	add: 'PPPredicateObjectParser class' -> #letter;
+	add: 'PPPredicateObjectParser class' -> #lowercase;
+	add: 'PPPredicateObjectParser class' -> #space;
+	add: 'PPPredicateObjectParser class' -> #uppercase;
+	add: 'PPPredicateObjectParser class' -> #word;
+	yourself.
+
+package binaryGlobalNames: (Set new
+	yourself).
+
+package globalAliases: (Set new
+	yourself).
+
+package setPrerequisites: #(
+	'..\d7\Core\Object Arts\Dolphin\Base\Dolphin'
+	'..\d7\Core\Object Arts\Dolphin\MVP\Base\Dolphin MVP Base'
+	'PetitAnalyzer-Core'
+	'..\rosetta\PetitCSV-PetitCSV'
+	'PetitParser-Core'
+	'PetitParser-Parsers'
+	'PetitTests-Tests').
+
+package!
+
+"Class Definitions"!
+
+Object subclass: #PPCharSetPredicate
+	instanceVariableNames: 'block classification'
+	classVariableNames: ''
+	poolDictionaries: ''
+	classInstanceVariableNames: ''!
+PPParser subclass: #PPUnresolvedParser
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	classInstanceVariableNames: ''!
+PPDelegateParser subclass: #PPCompositeParser
+	instanceVariableNames: 'dependencies'
+	classVariableNames: ''
+	poolDictionaries: ''
+	classInstanceVariableNames: ''!
+PPDelegateParser subclass: #PPExpressionParser
+	instanceVariableNames: 'operators'
+	classVariableNames: ''
+	poolDictionaries: ''
+	classInstanceVariableNames: ''!
+PPCompositeParser subclass: #PPArithmeticParser
+	instanceVariableNames: 'terms addition factors multiplication power primary parentheses number'
+	classVariableNames: ''
+	poolDictionaries: ''
+	classInstanceVariableNames: ''!
+PPCompositeParser subclass: #PPCommaSeparatedParser
+	instanceVariableNames: 'row cell rows endOfLine whitespace nonComma'
+	classVariableNames: ''
+	poolDictionaries: ''
+	classInstanceVariableNames: ''!
+PPCompositeParser subclass: #PPLambdaParser
+	instanceVariableNames: 'expression abstraction application variable'
+	classVariableNames: ''
+	poolDictionaries: ''
+	classInstanceVariableNames: ''!
+
+"Global Aliases"!
+
+
+"Loose Methods"!
+
+!Boolean methodsFor!
+
+==> aBlock
+	"The material conditional, also known as the material implication or truth functional conditional.
+	Correspond to not ... or ... and does not correspond to the English if...then... construction.
+		
+	 known as:
+			b if a 
+			a implies b
+			if a then b
+			b is a consequence of a
+			a therefore b (but note: 'it is raining therefore it is cloudy' is implication; 'it is autumn therefore the leaves are falling' is equivalence).
+		
+	Here is the truth table for material implication:
+	
+	   p   |   q   |   p ==> q
+	-------|-------|-------------
+	   T   |   T   |      T
+	   T   |   F   |      F
+	   F   |   T   |      T
+	   F   |   F   |      T
+	"
+	"true ==> [true] >>> true"
+	"true ==> [false] >>> false"
+	"false ==> [true] >>> true"
+	"false ==> [false] >>> true"
+
+	^ self not or: [ aBlock value ]! !
+!Boolean categoriesFor: #==>!public! !
+
+!PPAnalyzerTest methodsFor!
+
+grammarB
+	"The canonical grammar to exercise first- and follow-set calculation, probably originally from the dragon-book."
+
+	| grammar |
+	grammar := Dictionary new.
+	#(E Ep T Tp F) 		do: [ :each | grammar at: each put: (PPUnresolvedParser named: each) ].
+		
+	(grammar at: #E)		def: (grammar at: #T) , (grammar at: #Ep).
+	(grammar at: #Ep)	def: ($+ asParser , (grammar at: #T) , (grammar at: #Ep)) optional.
+	
+	(grammar at: #T)		def: (grammar at: #F) , (grammar at: #Tp).
+	(grammar at: #Tp)	def: ($* asParser , (grammar at: #F) , (grammar at: #Tp)) optional.
+	
+	(grammar at: #F)		def: ($( asParser , (grammar at: #E) , $) asParser) / $i asParser.
+			
+	#(E Ep T Tp F) 		do: [ :each | (grammar at: each) name: each ].
+	
+	^ grammar!
+
+grammarC
+	"A highly recrusive grammar."
+
+	| grammar |
+	grammar := PPUnresolvedParser new.
+	grammar def: (grammar , $+ asParser , grammar) / $1 asParser.
+	^ grammar!
+
+grammarD
+	"A highly ambiguous grammar from: Saichaitanya Jampana. Exploring the problem of ambiguity in context-free grammars. Master’s thesis, Oklahoma State University, July 2005."
+
+	| grammar |
+	grammar := Dictionary new.
+	#(S A a B b)			do: [ :each | grammar at: each put: (PPUnresolvedParser named: each) ].
+	
+	(grammar at: #a)		def: $a asParser.
+	(grammar at: #b)		def: $b asParser.
+		
+	(grammar at: #S)		def: (grammar at: #A) , (grammar at: #B) / (grammar at: #a).
+	(grammar at: #A)		def: (grammar at: #S) , (grammar at: #B) / (grammar at: #b).
+	(grammar at: #B)		def: (grammar at: #B) , (grammar at: #A) / (grammar at: #a).
+		
+	^ grammar!
+
+testFirstSetExpression
+	| grammar |
+	grammar := PPArithmeticParser new.
+	self assert: grammar start firstSet includes: '(-0123456789' epsilon: false.
+	self assert: grammar addition firstSet includes: '(-0123456789' epsilon: false.
+	self assert: grammar factors firstSet includes:  '(-0123456789' epsilon: false.
+	self assert: grammar multiplication firstSet includes:  '(-0123456789' epsilon: false.
+	self assert: grammar number firstSet includes: '-0123456789' epsilon: false.
+	self assert: grammar parentheses firstSet includes: '(' epsilon: false.
+	self assert: grammar power firstSet includes: '(-0123456789' epsilon: false.
+	self assert: grammar primary firstSet includes: '(-0123456789' epsilon: false.
+	self assert: grammar terms firstSet includes: '(-0123456789' epsilon: false!
+
+testFirstSetLambda
+	| grammar |
+	grammar := PPLambdaParser new.
+	self assert: grammar start firstSet includes: '(ABCDEFGHIJKLMNOPQRSTUVWXYZ\abcdefghijklmnopqrstuvwxyz' epsilon: false.
+	self assert: grammar abstraction firstSet includes: '\' epsilon: false.
+	self assert: grammar application firstSet includes: '(' epsilon: false.
+	self assert: grammar expression firstSet includes: '(ABCDEFGHIJKLMNOPQRSTUVWXYZ\abcdefghijklmnopqrstuvwxyz' epsilon: false.
+	self assert: grammar variable firstSet includes: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz' epsilon: false! !
+!PPAnalyzerTest categoriesFor: #grammarB!accessing!public! !
+!PPAnalyzerTest categoriesFor: #grammarC!accessing!public! !
+!PPAnalyzerTest categoriesFor: #grammarD!public! !
+!PPAnalyzerTest categoriesFor: #testFirstSetExpression!public!testing-firstset! !
+!PPAnalyzerTest categoriesFor: #testFirstSetLambda!public!testing-firstset! !
+
+!PPArithmeticParserTest methodsFor!
+
+parserClass
+	^ PPArithmeticParser! !
+!PPArithmeticParserTest categoriesFor: #parserClass!accessing!public! !
+
+!PPCommaSeparatedParserTest methodsFor!
+
+parserClass
+	^ PPCommaSeparatedParser! !
+!PPCommaSeparatedParserTest categoriesFor: #parserClass!public! !
+
+!PPExpressionParserTest methodsFor!
+
+parserInstance
+	| expression parens number |
+	expression := PPExpressionParser new.
+	parens := $( asParser trim , expression , $) asParser trim
+		==> [ :value | value second ].
+	number := (#digit asParser plus , ($. asParser , #digit asParser plus) optional) flatten trim
+		==> [ :value | value asNumber ].
+	expression term: parens / number.
+	expression
+		group: [ :g |
+			g prefix: $- asParser trim do: [ :op :a | a negated ] ];
+		group: [ :g |
+			g postfix: '++' asParser trim do: [ :a :op | a + 1 ].
+			g postfix: '--' asParser trim do: [ :a :op | a - 1 ] ];
+		group: [ :g |
+			g right: $^ asParser trim do: [ :a :op :b | a raisedTo: b ] ];
+		group: [ :g |
+			g left: $* asParser trim do: [ :a :op :b | a * b ].
+			g left: $/ asParser trim do: [ :a :op :b | a / b ] ];
+		group: [ :g |
+			g left: $+ asParser trim do: [ :a :op :b | a + b ].
+			g left: $- asParser trim do: [ :a :op :b | a - b ] ].
+	^ expression end! !
+!PPExpressionParserTest categoriesFor: #parserInstance!accessing!public! !
+
+!PPLambdaParserTest methodsFor!
+
+parserClass
+	^ PPLambdaParser! !
+!PPLambdaParserTest categoriesFor: #parserClass!accessing!public! !
+
+!PPParserTest methodsFor!
+
+testChildren
+	| p1 p2 p3 |
+	p1 := #lowercase asParser.
+	p2 := p1 ==> #asUppercase.
+	p3 := PPUnresolvedParser new.
+	p3 def: p2 / p3.
+	self assert: p1 children isEmpty.
+	self assert: p2 children size = 1.
+	self assert: p3 children size = 2!
+
+testUnresolved
+	| parser |
+	parser := PPUnresolvedParser new.
+	
+	self assert: parser isUnresolved.
+	self should: [ parser parse: '' ] raise: Error.
+	self should: [ parser parse: 'a' ] raise: Error.
+	self should: [ parser parse: 'ab' ] raise: Error.
+	
+	parser := nil asParser.
+	self deny: parser isUnresolved! !
+!PPParserTest categoriesFor: #testChildren!public!testing-utilities! !
+!PPParserTest categoriesFor: #testUnresolved!public!testing! !
+
+!PPPredicateObjectParser methodsFor!
+
+chars: aCollection message: aString
+	^ self on: (PPCharSetPredicate on: [ :char | aCollection includes: char ]) message: aString!
+
+digit
+	^ self on: (PPCharSetPredicate on: [ :char | char isDigit ]) message: 'digit expected'!
+
+hex
+	^ self 
+		on: (PPCharSetPredicate on: [ :char | 
+			(char between: $0 and: $9) 
+				or: [ (char between: $a and: $f) 
+				or: [ (char between: $A and: $F) ] ] ])
+		message: 'hex digit expected'!
+
+letter
+	^ self on: (PPCharSetPredicate on: [ :char | char isLetter ]) message: 'letter expected'!
+
+lowercase
+	^ self on: (PPCharSetPredicate on: [ :char | char isLowercase ]) message: 'lowercase letter expected'!
+
+space
+	^ self on: (PPCharSetPredicate on: [ :char | char isSeparator ]) message: 'separator expected'!
+
+uppercase
+	^ self on: (PPCharSetPredicate on: [ :char | char isUppercase ]) message: 'uppercase letter expected'!
+
+word
+	^ self on: (PPCharSetPredicate on: [ :char | char isAlphaNumeric ]) message: 'letter or digit expected'! !
+!PPPredicateObjectParser categoriesFor: #chars:message:!public! !
+!PPPredicateObjectParser categoriesFor: #digit!public! !
+!PPPredicateObjectParser categoriesFor: #hex!public! !
+!PPPredicateObjectParser categoriesFor: #letter!public! !
+!PPPredicateObjectParser categoriesFor: #lowercase!public! !
+!PPPredicateObjectParser categoriesFor: #space!public! !
+!PPPredicateObjectParser categoriesFor: #uppercase!public! !
+!PPPredicateObjectParser categoriesFor: #word!public! !
+
+!PPPredicateObjectParser class methodsFor!
+
+chars: aCollection message: aString
+	^ self on: (PPCharSetPredicate on: [ :char | aCollection includes: char ]) message: aString!
+
+digit
+	^ self on: (PPCharSetPredicate on: [ :char | char isDigit ]) message: 'digit expected'!
+
+hex
+	^ self 
+		on: (PPCharSetPredicate on: [ :char | 
+			(char between: $0 and: $9) 
+				or: [ (char between: $a and: $f) 
+				or: [ (char between: $A and: $F) ] ] ])
+		message: 'hex digit expected'!
+
+letter
+	^ self on: (PPCharSetPredicate on: [ :char | char isLetter ]) message: 'letter expected'!
+
+lowercase
+	^ self on: (PPCharSetPredicate on: [ :char | char isLowercase ]) message: 'lowercase letter expected'!
+
+space
+	^ self on: (PPCharSetPredicate on: [ :char | char isSeparator ]) message: 'separator expected'!
+
+uppercase
+	^ self on: (PPCharSetPredicate on: [ :char | char isUppercase ]) message: 'uppercase letter expected'!
+
+word
+	^ self on: (PPCharSetPredicate on: [ :char | char isAlphaNumeric ]) message: 'letter or digit expected'! !
+!PPPredicateObjectParser class categoriesFor: #chars:message:!factory-chars!public! !
+!PPPredicateObjectParser class categoriesFor: #digit!factory-chars!public! !
+!PPPredicateObjectParser class categoriesFor: #hex!factory-chars!public! !
+!PPPredicateObjectParser class categoriesFor: #letter!factory-chars!public! !
+!PPPredicateObjectParser class categoriesFor: #lowercase!factory-chars!public! !
+!PPPredicateObjectParser class categoriesFor: #space!factory-chars!public! !
+!PPPredicateObjectParser class categoriesFor: #uppercase!factory-chars!public! !
+!PPPredicateObjectParser class categoriesFor: #word!factory-chars!public! !
+
+!PPScriptingTest methodsFor!
+
+expressionInterpreter
+	"Same as #expressionInterpreter but with semantic actions."
+	
+	| mul prim add dec |
+	add := PPUnresolvedParser new.
+	mul := PPUnresolvedParser new.
+	prim := PPUnresolvedParser new.
+	dec := ($0 - $9) ==> [ :token | token codePoint - $0 codePoint ].
+	add def: ((mul , $+ asParser , add) ==> [ :nodes | (nodes at: 1) + (nodes at: 3) ])
+		/ mul.
+	mul def: ((prim , $* asParser , mul) ==> [ :nodes | (nodes at: 1) * (nodes at: 3) ])
+		/ prim.
+	prim def: (($( asParser , add , $) asParser) ==> [ :nodes | nodes at: 2 ])
+		/ dec.
+	^ add end!
+
+expressionParser
+	"Simple demo of scripting an expression parser."
+	
+	| mul prim add dec |
+	add := PPUnresolvedParser new.
+	mul := PPUnresolvedParser new.
+	prim := PPUnresolvedParser new.
+	dec := ($0 - $9).
+	add def: (mul , $+ asParser , add)
+		/ mul.
+	mul def: (prim , $* asParser , mul)
+		/ prim.
+	prim def: ($( asParser , add , $) asParser)
+		/ dec.
+	^ add end!
+
+straightLineParser
+	| goal stm stmList id char dec exp expList mulExp primExp nonzero num lower upper |
+	goal := PPUnresolvedParser new.
+	stmList := PPUnresolvedParser new.
+	stm := PPUnresolvedParser new.
+	exp := PPUnresolvedParser new.
+	expList := PPUnresolvedParser new.
+	mulExp := PPUnresolvedParser new.
+	primExp := PPUnresolvedParser new.
+	
+	lower := $a - $z.
+	upper := $A - $Z.
+	char := lower / upper.
+	nonzero := $1 - $9.
+	dec := $0 - $9.
+	id := char, ( char / dec ) star.
+	num := $0 asParser / ( nonzero, dec star).
+
+	goal def: stmList end.
+	stmList def: stm , ( $; asParser, stm ) star.
+	stm def: ( id, ':=' asParser, exp )
+		/ ( 'print' asParser, $( asParser, expList, $) asParser ). 
+	exp def: mulExp, ( ( $+ asParser / $- asParser ), mulExp ) star.
+	expList def: exp, ( $, asParser, exp ) star.
+	mulExp def: primExp, ( ( $* asParser / $/ asParser ), primExp ) star.
+	primExp def: id
+		/ num
+		/ ( $( asParser, stmList, $, asParser, exp, $) asParser ).
+	^ goal
+! !
+!PPScriptingTest categoriesFor: #expressionInterpreter!examples!public! !
+!PPScriptingTest categoriesFor: #expressionParser!examples!public! !
+!PPScriptingTest categoriesFor: #straightLineParser!examples!public! !
+
+"End of package definition"!
+
