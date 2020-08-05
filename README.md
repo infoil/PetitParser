@@ -9,6 +9,6 @@ parsers. As such PetitParser is more powerful in what it can parse and it arguab
 nature of Smalltalk. Let’s have a quick look at these four parser
  
  
- Use   Dolphin 7.1.15
+*Use   Dolphin 7.1.15
 ## License
 The MIT license
