@@ -1,4 +1,4 @@
-# PetitParser
+### PetitParser
 
 # Petit Parser for Dolphin Smalltalk 
 
@@ -13,5 +13,28 @@ Let’s have a quick look at these four parser
  
 * Use   Dolphin 7.1.15
 
+### Installation 
+
+Clone repository and install with file in.
+
+### Test Packages
+
+*Package   PetitTest-Test*  test Petit-Parsers-Core 
+
+PetitSQL-Test  test PetitSQL
+
+PetitJson-Test  test PetitJson 
+
+
+
+
+
+
 ## License
 The MIT license
+
+**refs:**
+
+https://www.lukas-renggli.ch/blog/petitparser-1
+
+http://pharobooks.gforge.inria.fr/PharoByExampleTwo-Eng/latest/PetitParser.pdf
