@@ -1,0 +1,166 @@
+﻿| package |
+package := Package name: 'PetitParser-Core'.
+package paxVersion: 1;
+	basicComment: ''.
+
+
+package classNames
+	add: #PPFailure;
+	add: #PPMemento;
+	add: #PPStream;
+	add: #PPToken;
+	add: #Pragma;
+	add: #Scanner;
+	yourself.
+
+package methodNames
+	add: #AnsiString -> #asText;
+	add: #BlockClosure -> #isBlock;
+	add: #Character -> #sameAs:;
+	add: #Collection -> #gather:;
+	add: #Object -> #isBlock;
+	add: #Object -> #isPetitParser;
+	add: #SequenceableCollection -> #asPetitStream;
+	add: #SequenceableCollection -> #reversed;
+	add: #Stream -> #asPetitStream;
+	add: #String -> #asInteger;
+	add: #String -> #asSignedInteger;
+	yourself.
+
+package binaryGlobalNames: (Set new
+	yourself).
+
+package globalAliases: (Set new
+	yourself).
+
+package setPrerequisites: #(
+	'..\d7\Core\Object Arts\Dolphin\Base\Dolphin').
+
+package!
+
+"Class Definitions"!
+
+Object subclass: #PPFailure
+	instanceVariableNames: 'message position'
+	classVariableNames: ''
+	poolDictionaries: ''
+	classInstanceVariableNames: ''!
+Object subclass: #PPMemento
+	instanceVariableNames: 'result count position'
+	classVariableNames: ''
+	poolDictionaries: ''
+	classInstanceVariableNames: ''!
+Object subclass: #PPToken
+	instanceVariableNames: 'collection start stop value'
+	classVariableNames: 'NewLineParser'
+	poolDictionaries: ''
+	classInstanceVariableNames: ''!
+Object subclass: #Pragma
+	instanceVariableNames: 'method keyword arguments'
+	classVariableNames: ''
+	poolDictionaries: ''
+	classInstanceVariableNames: ''!
+Object subclass: #Scanner
+	instanceVariableNames: 'source mark hereChar aheadChar token tokenType currentComment buffer typeTable'
+	classVariableNames: 'AllowBlockArgumentAssignment AllowUnderscoreAssignments AllowUnderscoreSelectors AllowUnicharSymbol DoItCharacter TypeTable'
+	poolDictionaries: ''
+	classInstanceVariableNames: ''!
+ReadStream subclass: #PPStream
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	classInstanceVariableNames: ''!
+
+"Global Aliases"!
+
+
+"Loose Methods"!
+
+!AnsiString methodsFor!
+
+asText
+
+	^self ! !
+!AnsiString categoriesFor: #asText!public! !
+
+!BlockClosure methodsFor!
+
+isBlock
+
+	^ true! !
+!BlockClosure categoriesFor: #isBlock!public! !
+
+!Character methodsFor!
+
+sameAs: aCharacter 
+	"Answer whether the receiver is equal to aCharacter, ignoring case"
+	
+	self == aCharacter ifTrue: [ ^true ].
+	^self asLowercase == aCharacter asLowercase! !
+!Character categoriesFor: #sameAs:!public! !
+
+!Collection methodsFor!
+
+gather: aBlock
+	^ Array streamContents:
+		[:stream |
+		self do: [:ea | stream nextPutAll: (aBlock value: ea)]]! !
+!Collection categoriesFor: #gather:!public! !
+
+!Object methodsFor!
+
+isBlock
+
+	^ false!
+
+isPetitParser
+	^ false! !
+!Object categoriesFor: #isBlock!public! !
+!Object categoriesFor: #isPetitParser!public! !
+
+!SequenceableCollection methodsFor!
+
+asPetitStream
+	^ PPStream on: self!
+
+reversed
+	"Answer a copy of the receiver with element order reversed."
+	"Example: 'frog' reversed"
+
+	self reverse! !
+!SequenceableCollection categoriesFor: #asPetitStream!public! !
+!SequenceableCollection categoriesFor: #reversed!public! !
+
+!Stream methodsFor!
+
+asPetitStream
+	^ self contents asPetitStream! !
+!Stream categoriesFor: #asPetitStream!public! !
+
+!String methodsFor!
+
+asInteger 
+	"Return the integer present in the receiver, or nil. In case of float, returns the integer part."
+	"'1' asInteger >>> 1"
+	"'-1' asInteger >>> -1"
+	"'10' asInteger >>> 10"
+	"'a' asInteger >>> nil"
+	"'1.234' asInteger >>> 1"
+	^self asSignedInteger
+!
+
+asSignedInteger 
+	"Returns the first signed integer it can find or nil."
+
+	| start stream |
+	start := self findFirst: [:char | char isDigit].
+	start isZero ifTrue: [^ nil].
+	stream := self readStream position: start - 1.
+	((stream position ~= 0) and: [stream peekBack = $-])
+		ifTrue: [stream back].
+	^ Integer readFrom: stream! !
+!String categoriesFor: #asInteger!public! !
+!String categoriesFor: #asSignedInteger!public! !
+
+"End of package definition"!
+

@@ -1,0 +1,56 @@
+﻿| package |
+package := Package name: 'PetitJson-Core'.
+package paxVersion: 1;
+	basicComment: ''.
+
+
+package classNames
+	add: #PPJsonGrammar;
+	add: #PPJsonParser;
+	yourself.
+
+package methodNames
+	add: #PPJsonGrammarTest -> #parserClass;
+	yourself.
+
+package binaryGlobalNames: (Set new
+	yourself).
+
+package globalAliases: (Set new
+	yourself).
+
+package setPrerequisites: #(
+	'..\d7\Core\Object Arts\Dolphin\Base\Dolphin'
+	'PetitJson-Tests'
+	'PetitParser-Core'
+	'PetitParser-Parsers'
+	'PetitParser-Tools').
+
+package!
+
+"Class Definitions"!
+
+PPCompositeParser subclass: #PPJsonGrammar
+	instanceVariableNames: 'members pair string value elements number object array trueToken falseToken nullToken char stringToken numberToken charEscape charNormal charOctal'
+	classVariableNames: 'CharacterTable'
+	poolDictionaries: ''
+	classInstanceVariableNames: ''!
+PPJsonGrammar subclass: #PPJsonParser
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	classInstanceVariableNames: ''!
+
+"Global Aliases"!
+
+
+"Loose Methods"!
+
+!PPJsonGrammarTest methodsFor!
+
+parserClass
+	^ PPJsonParser! !
+!PPJsonGrammarTest categoriesFor: #parserClass!accessing!public! !
+
+"End of package definition"!
+
